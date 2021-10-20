@@ -1,12 +1,12 @@
-# predict-churn-clean-code
+# Predict Customer Churn
 
-This is a repository to practise the principles of clean code and ML DevOps (part of a Udacity Nanodegree).
+- Project **Predict Customer Churn** of ML DevOps Engineer Nanodegree Udacity
 
-```git checkout -b develop```
-Create and switch to the develop branch
+## Project Description
+Your project description here.
 
-```git merge --no-ff documentation```
-If executed within ```develop``` branch, this will merge the ```documentation``` branch into the ```develop``` branch
 
-```git branch -d develop```
-Delete develop branch
+## Running Files
+How do you run your files? What should happen when you run your files?
+
+
