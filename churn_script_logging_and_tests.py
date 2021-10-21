@@ -1,6 +1,6 @@
 import os
 import logging
-import churn_library_solution as cls
+import churn_library as cl
 
 logging.basicConfig(
     filename='./logs/churn_library.log',
@@ -52,7 +52,10 @@ def test_train_models(train_models):
 
 
 if __name__ == "__main__":
-	pass
+	test_import(cl.import_data)
+	CUSTOMER_DF = cl.import_data('./data/bank_data.csv')
+	cl.perform_eda(CUSTOMER_DF)
+
 
 
 

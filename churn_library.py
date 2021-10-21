@@ -8,9 +8,9 @@ This python file is an exercise in creating production ready code by practising:
 - Logging
 -
 The original jupyter notebook, "churn_notebook.ipynb", was designed to predict customer
-churn. This python file takes the EDA, model fitting and model evaluation from the logistic regression
-and random forest classifiers that were created in that notebook and creates modular, concise and clean
-code so that it can tested properly and imported in production.
+churn. This python file takes the EDA, model fitting and model evaluation from the logistic
+regression and random forest classifiers that were created in that notebook and creates
+modular, concise and clean code so that it can tested properly and imported in production.
 """
 
 # import libraries
@@ -40,14 +40,6 @@ def import_data(bank_data_path):
     '''
     bank_data_df = pd.read_csv(bank_data_path, index_col=1)
 
-    # remove unnamed first column if exists
-    if bank_data_df.columns[0] == 'Unnamed: 0':
-        bank_data_df = bank_data_df.iloc[:, 1:]
-
-    # Add churn column i.e. 0 or 1 based on 'Attrition_Flag'
-    bank_data_df['Churn'] = bank_data_df['Attrition_Flag'].apply(
-        lambda val: 0 if val == "Existing Customer" else 1)
-    bank_data_df = bank_data_df.drop(['Attrition_Flag'], axis=1)
     return bank_data_df
 
 
@@ -60,6 +52,17 @@ def perform_eda(customer_df, bivariate_cols=None):
     output:
             None - saves files directly to images folder
     '''
+    # remove unnamed first column if exists
+    if customer_df.columns[0] == 'Unnamed: 0':
+        bank_data_df = customer_df.iloc[:, 1:]
+
+    # Add churn column i.e. 0 or 1 based on 'Attrition_Flag' if not already added
+    if 'Churn' not in df.columns:
+        customer_df['Churn'] = customer_df['Attrition_Flag'].apply(
+            lambda val: 0 if val == "Existing Customer" else 1)
+        customer_df = customer_df.drop(['Attrition_Flag'], axis=1)
+
+
     # Split columns into numeric/quant columns and categorical columns
     category_cols = customer_df.select_dtypes(
         exclude=['int64', 'float64']).columns.tolist()
@@ -82,15 +85,18 @@ def perform_eda(customer_df, bivariate_cols=None):
     plt.close()
 
     # Create pairs plot (bivariate plots) between just four most important
-    # variables
-    bivariate_plot_cols = [
-        'Total_Trans_Ct',
-        'Total_Trans_Amt',
-        'Total_Revolving_Bal',
-        'Total_Ct_Chng_Q4_Q1']
+    # variables unless specified otherwise
+    if bivariate_cols is not None:
+        bivariate_plot_cols = bivariate_cols
+    else:
+        bivariate_plot_cols = [
+            'Total_Trans_Ct',
+            'Total_Trans_Amt',
+            'Total_Revolving_Bal',
+            'Total_Ct_Chng_Q4_Q1']
     plt.figure(figsize=(30, 15))
     sns.pairplot(customer_df[bivariate_plot_cols])
-    plt.savefig('images/eda/bivariate_pairs_plot.png')
+    plt.savefig('./images/eda/bivariate_pairs_plot.png')
     plt.close()
 
 
@@ -102,12 +108,13 @@ def encoder_helper(customer_df, category_lst, response='Churn'):
     input:
             df: pandas dataframe
             category_lst: list of columns that contain categorical features
-            response: string of response name [optional argument that could 
+            response: string of response name [optional argument that could
             be used for naming variables or index y column]
 
     output:
             df: pandas dataframe with new columns for
     '''
+    
     for col in category_lst:
         col_groups = customer_df.groupby(col).mean()[response]
         customer_df.loc[:, col] = customer_df[col].replace(
@@ -125,11 +132,17 @@ def encoder_helper(customer_df, category_lst, response='Churn'):
     return customer_df
 
 
-def perform_feature_engineering(customer_df, response='Churn', test_size=0.3, seed=42):
+def perform_feature_engineering(
+        customer_df,
+        response='Churn',
+        test_size=0.3,
+        seed=42):
     '''
+    Performs simple feature engineering (spliting into training and test sets)
+    No variable scaling is done in this function (could be added at a future date)
     input:
-              df: pandas dataframe
-              response: string of response name [optional argument that could 
+              df: pandas dataframe with no categorical 
+              response: string of response name [optional argument that could
               be used for naming variables or index y column]
 
     output:
@@ -138,12 +151,28 @@ def perform_feature_engineering(customer_df, response='Churn', test_size=0.3, se
               y_train: y training data
               y_test: y testing data
     '''
+
+    # remove unnamed first column if exists
+    if customer_df.columns[0] == 'Unnamed: 0':
+        bank_data_df = customer_df.iloc[:, 1:]
+
+    # Add churn column i.e. 0 or 1 based on 'Attrition_Flag'
+    customer_df['Churn'] = customer_df['Attrition_Flag'].apply(
+        lambda val: 0 if val == "Existing Customer" else 1)
+    customer_df = customer_df.drop(['Attrition_Flag'], axis=1)
+
+    # Encode categorical columns
+    category_cols = customer_df.select_dtypes(
+        exclude=['int64', 'float64']).columns.tolist()
+    if len(category_cols) >= 1:
+        customer_df = encoder_helper(customer_df, category_cols)
+
+    #Split data into train and test datasets
     X = customer_df.drop(columns=[response])
     y = customer_df[response]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=seed)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=seed)
     return X_train, X_test, y_train, y_test
-
-
 
 
 def classification_report_image(y_train,
@@ -166,12 +195,52 @@ def classification_report_image(y_train,
     output:
              None
     '''
-    pass
+    # Create logistic regression classification report
+    plt.rc('figure', figsize=(7, 5))
+    plt.text(0.01, 1.25, str('Logistic Regression Train'), {'fontsize': 10}, fontproperties = 'monospace')
+    plt.text(0.01, 0.05, str(classification_report(y_train, y_train_preds_lr)), {'fontsize': 10}, fontproperties = 'monospace')
+    plt.text(0.01, 0.6, str('Logistic Regression Test'), {'fontsize': 10}, fontproperties = 'monospace')
+    plt.text(0.01, 0.7, str(classification_report(y_test, y_test_preds_lr)), {'fontsize': 10}, fontproperties = 'monospace')
+    plt.axis('off')
+    # Save image
+    plt.savefig('./images/results/classification_report_lr.png')
+    plt.close()
+    # Create random forest classification report
+    plt.rc('figure', figsize=(7, 5))
+    plt.text(0.01, 1.25, str('Logistic Regression Train'), {'fontsize': 10}, fontproperties = 'monospace')
+    plt.text(0.01, 0.05, str(classification_report(y_train, y_train_preds_rf)), {'fontsize': 10}, fontproperties = 'monospace')
+    plt.text(0.01, 0.6, str('Logistic Regression Test'), {'fontsize': 10}, fontproperties = 'monospace')
+    plt.text(0.01, 0.7, str(classification_report(y_test, y_test_preds_rf)), {'fontsize': 10}, fontproperties = 'monospace')
+    plt.axis('off')
+    # Save image
+    plt.savefig('./images/results/classification_report_rf.png')
+    plt.close()
+
+
+def shap_explainer_plot(model, X_data, output_pth):
+    '''
+    creates and stores the shap_values importances to output_pth
+    input:
+            model: sklearn model object
+            X_data: pandas dataframe of X values
+            output_pth: path to store the figure
+
+    output:
+             None
+    '''
+    # Create shap explainer plot
+    plt.figure(figsize = [12,6])
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X_data)
+    plt.rcParams.update({'font.size': 8})
+    shap.summary_plot(shap_values, X_test, plot_type="bar", show=False, plot_size=[12, 6])
+    plt.savefig(output_pth, bbox_inches='tight')
+    plt.close()
 
 
 def feature_importance_plot(model, X_data, output_pth):
     '''
-    creates and stores the feature importances in pth
+    creates and stores the feature importances to output_pth
     input:
             model: model object containing feature_importances_
             X_data: pandas dataframe of X values
@@ -180,10 +249,27 @@ def feature_importance_plot(model, X_data, output_pth):
     output:
              None
     '''
-    pass
+    # Create feature importance plots
+    importances = model.feature_importances_
+    indices = np.argsort(importances)[::-1] # Sort feature importances in descending order
+    # Rearrange feature names so they match the sorted feature importances
+    names = [X_data.columns[i] for i in indices]
+    plt.figure(figsize=(20,5))
+    plt.title("Feature Importance")
+    plt.ylabel('Importance')
+    plt.bar(range(X_data.shape[1]), importances[indices])
+    plt.xticks(range(X_data.shape[1]), names, rotation=90)
+    plt.savefig(output_pth, bbox_inches='tight')
 
 
-def train_models(X_train, X_test, y_train, y_test):
+
+def train_models(
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        seed=42,
+        custom_params=None):
     '''
     train, store model results: images + scores, and store models
     input:
@@ -195,29 +281,117 @@ def train_models(X_train, X_test, y_train, y_test):
               None
     '''
     # Train logistic regression model
-    lrc = LogisticRegression()
+    lrc = LogisticRegression(solver='liblinear')
     lrc.fit(X_train, y_train)
     # Create predictions based on LR model
     y_train_preds_lr = lrc.predict(X_train)
     y_test_preds_lr = lrc.predict(X_test)
 
+    # Fit random forest classifier and tune parameters using grid search
+    # during CV
+    rfc = RandomForestClassifier(random_state=seed)
+    if custom_params is not None:
+        param_grid = custom_params
+    else:
+        param_grid = {
+            'n_estimators': [100, 50],  # 'n_estimators': [200, 500],
+            'max_features': ['auto', 'sqrt'],
+            'max_depth': [4, 5, 100],
+            'criterion': ['gini', 'entropy']
+        }
+    cv_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=5)
+    cv_rfc.fit(X_train, y_train)
+
+    # Create predictions based on best RF model
+    y_train_preds_rf = cv_rfc.best_estimator_.predict(X_train)
+    y_test_preds_rf = cv_rfc.best_estimator_.predict(X_test)
+
+    # Save results of LR model as text file
+    # with open('./models/training_results.txt', "w") as train_results:
+    #     train_results.write('Logistic Regression Results\n')
+    #     train_results.write('training data results\n')
+    #     train_results.write(
+    #         classification_report(
+    #             y_train,
+    #             y_train_preds_lr) +
+    #         '\n')
+    #     train_results.write('test data results\n')
+    #     train_results.write(
+    #         classification_report(
+    #             y_test, y_test_preds_lr) + '\n')
+    #     # Save results of RF model in same text file
+    #     train_results.write('Random Forest Results\n')
+    #     train_results.write('training data results\n')
+    #     train_results.write(
+    #         classification_report(
+    #             y_train,
+    #             y_train_preds_rf) +
+    #         '\n')
+    #     train_results.write('test data results\n')
+    #     train_results.write(
+    #         classification_report(
+    #             y_test, y_test_preds_rf) + '\n')
+    # train_results.close()
+
+    # Save classification report
+    classification_report_image(y_train,
+                                y_test,
+                                y_train_preds_lr,
+                                y_train_preds_rf,
+                                y_test_preds_lr,
+                                y_test_preds_rf)
+
+    # Save ROC plot
+    lrc_plot = plot_roc_curve(lrc, X_test, y_test)
+    plt.figure(figsize=(20, 10))
+    ax = plt.gca()
+    rfc_disp = plot_roc_curve(
+        cv_rfc.best_estimator_,
+        X_test,
+        y_test,
+        ax=ax,
+        alpha=0.8)
+    lrc_plot.plot(ax=ax, alpha=0.8)
+    plt.savefig('./images/results/ROC_curve.png')
+    plt.close()
+
+    # Save models
+    joblib.dump(cv_rfc.best_estimator_, './models/rfc_model.pkl')
+    joblib.dump(lrc, './models/logistic_model.pkl')
+
+    # Save feature importances
+    feature_importance_plot(cv_rfc.best_estimator_, X_test, './images/results/feature_importance_rf.png') # rf model
+    feature_importance_plot(lrc, X_test, './images/results/feature_importance_lf.png') # lr model
+
+    # Save shap explainer plots
+    shap_explainer_plot(cv_rfc.best_estimator_, X_test, './images/results/shap_rf.png') # rf model
+    shap_explainer_plot(lrc, X_test, './images/results/shap_lf.png') # lr model
+
+    # Save predictions
+    train_predictions = pd.DataFrame(
+        {
+            'y_train_preds_lr': y_train_preds_lr,
+            'y_train_preds_rf': y_train_preds_rf
+        }
+    ).set_index(X_train.index)
+    test_predictions = pd.DataFrame(
+        {
+            'y_test_preds_lr': y_test_preds_lr,
+            'y_test_preds_rf': y_test_preds_rf
+        }
+    ).set_index(X_test.index)
+
+    train_predictions.to_csv(path_or_buf="./models/train_predictions.csv")
+    test_predictions.to_csv(path_or_buf="./models/test_predictions.csv")
+
+
 if __name__ == "__main__":
     BANK_DATA = import_data("./data/bank_data.csv")
-    # print(BANK_DATA.head())
-    #print("Completed printing and importing")
-    # perform_eda(BANK_DATA)
-    #print("Completed EDA")
-    print(
-        BANK_DATA.select_dtypes(
-            exclude=[
-                'int64',
-                'float64']).columns.tolist())
-    BANK_DATA = encoder_helper(
-        BANK_DATA,
-        BANK_DATA.select_dtypes(
-            exclude=[
-                'int64',
-                'float64']).columns.tolist())
+    print("Imported Data")
     X_train, X_test, y_train, y_test = perform_feature_engineering(BANK_DATA)
-    print(X_train.shape)
-    print(X_test.shape)
+    print("Performed Feature Engineering")
+    print(train_models(X_train, X_test, y_train, y_test))
+    print("Trained Models")
+
+    # rfc_model = joblib.load('./models/rfc_model.pkl')
+    # feature_importance_plot(rfc_model, X_test, './images/results/feature_importance_test.png')
