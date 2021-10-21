@@ -19,7 +19,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import normalize
+from sklearn import preprocessing
 import shap
 import joblib
 import pandas as pd
@@ -154,7 +154,7 @@ def perform_feature_engineering(
 
     # remove unnamed first column if exists
     if customer_df.columns[0] == 'Unnamed: 0':
-        bank_data_df = customer_df.iloc[:, 1:]
+        customer_df = customer_df.iloc[:, 1:]
 
     # Add churn column i.e. 0 or 1 based on 'Attrition_Flag'
     customer_df['Churn'] = customer_df['Attrition_Flag'].apply(
@@ -172,7 +172,20 @@ def perform_feature_engineering(
     y = customer_df[response]
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=seed)
+
+    # Scale/normalize features to have mean zero and unit variance so that comparisons can be made between features for feature importance
+    scaler = preprocessing.StandardScaler().fit(X_train)
+    X_train = pd.DataFrame(
+        data=scaler.transform(X_train), 
+        index=X_train.index,
+        columns=X_train.columns)
+    X_test = pd.DataFrame(
+        data=scaler.transform(X_test), 
+        index=X_test.index,
+        columns=X_test.columns)
+    
     return X_train, X_test, y_train, y_test
+
 
 
 def classification_report_image(y_train,
@@ -203,7 +216,7 @@ def classification_report_image(y_train,
     plt.text(0.01, 0.7, str(classification_report(y_test, y_test_preds_lr)), {'fontsize': 10}, fontproperties = 'monospace')
     plt.axis('off')
     # Save image
-    plt.savefig('./images/results/classification_report_lr.png')
+    plt.savefig('./images/results/classification_report_lr.png', bbox_inches='tight')
     plt.close()
     # Create random forest classification report
     plt.rc('figure', figsize=(7, 5))
@@ -213,7 +226,7 @@ def classification_report_image(y_train,
     plt.text(0.01, 0.7, str(classification_report(y_test, y_test_preds_rf)), {'fontsize': 10}, fontproperties = 'monospace')
     plt.axis('off')
     # Save image
-    plt.savefig('./images/results/classification_report_rf.png')
+    plt.savefig('./images/results/classification_report_rf.png', bbox_inches='tight')
     plt.close()
 
 
@@ -250,7 +263,16 @@ def feature_importance_plot(model, X_data, output_pth):
              None
     '''
     # Create feature importance plots
-    importances = model.feature_importances_
+    
+    # LR regression
+    if isinstance(model, LogisticRegression):
+        importances = abs(model.coef_[0])
+
+    # Random forest models
+    else:
+        importances = model.feature_importances_
+    
+    importances = 100.0 * (importances / importances.max())
     indices = np.argsort(importances)[::-1] # Sort feature importances in descending order
     # Rearrange feature names so they match the sorted feature importances
     names = [X_data.columns[i] for i in indices]
@@ -260,7 +282,6 @@ def feature_importance_plot(model, X_data, output_pth):
     plt.bar(range(X_data.shape[1]), importances[indices])
     plt.xticks(range(X_data.shape[1]), names, rotation=90)
     plt.savefig(output_pth, bbox_inches='tight')
-
 
 
 def train_models(
@@ -283,6 +304,7 @@ def train_models(
     # Train logistic regression model
     lrc = LogisticRegression(solver='liblinear')
     lrc.fit(X_train, y_train)
+
     # Create predictions based on LR model
     y_train_preds_lr = lrc.predict(X_train)
     y_test_preds_lr = lrc.predict(X_test)
@@ -363,9 +385,9 @@ def train_models(
     feature_importance_plot(cv_rfc.best_estimator_, X_test, './images/results/feature_importance_rf.png') # rf model
     feature_importance_plot(lrc, X_test, './images/results/feature_importance_lf.png') # lr model
 
-    # Save shap explainer plots
+    # Save shap explainer plots for random forest ONLY
     shap_explainer_plot(cv_rfc.best_estimator_, X_test, './images/results/shap_rf.png') # rf model
-    shap_explainer_plot(lrc, X_test, './images/results/shap_lf.png') # lr model
+    # shap_explainer_plot(lrc, X_test, './images/results/shap_lf.png') # lr model
 
     # Save predictions
     train_predictions = pd.DataFrame(
