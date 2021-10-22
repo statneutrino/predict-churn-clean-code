@@ -54,14 +54,13 @@ def perform_eda(customer_df, bivariate_cols=None):
     '''
     # remove unnamed first column if exists
     if customer_df.columns[0] == 'Unnamed: 0':
-        bank_data_df = customer_df.iloc[:, 1:]
+        customer_df = customer_df.iloc[:, 1:]
 
     # Add churn column i.e. 0 or 1 based on 'Attrition_Flag' if not already added
-    if 'Churn' not in df.columns:
+    if 'Churn' not in customer_df.columns:
         customer_df['Churn'] = customer_df['Attrition_Flag'].apply(
             lambda val: 0 if val == "Existing Customer" else 1)
         customer_df = customer_df.drop(['Attrition_Flag'], axis=1)
-
 
     # Split columns into numeric/quant columns and categorical columns
     category_cols = customer_df.select_dtypes(
@@ -73,13 +72,13 @@ def perform_eda(customer_df, bivariate_cols=None):
     plt.figure(figsize=(20, 10))
     for col in category_cols:
         customer_df[col].value_counts('normalize').plot(kind='bar')
-        plt.savefig('images/eda/' + col)
+        plt.savefig('./images/eda/' + col)
         plt.clf()
 
     # Perform univariate EDA plots on numeric variables
     for col in quant_cols:
         sns.distplot(customer_df[col])
-        plt.savefig('images/eda/' + col)
+        plt.savefig('./images/eda/' + col)
         plt.clf()
 
     plt.close()
@@ -410,10 +409,17 @@ def train_models(
 if __name__ == "__main__":
     BANK_DATA = import_data("./data/bank_data.csv")
     print("Imported Data")
+    perform_eda(BANK_DATA)
+    print("Completed EDA")
     X_train, X_test, y_train, y_test = perform_feature_engineering(BANK_DATA)
     print("Performed Feature Engineering")
     print(train_models(X_train, X_test, y_train, y_test))
     print("Trained Models")
 
+    print(X_train.head())
+    print(X_test.head())
+    print(X_train.shape)
+    print(X_test.shape)
+    
     # rfc_model = joblib.load('./models/rfc_model.pkl')
     # feature_importance_plot(rfc_model, X_test, './images/results/feature_importance_test.png')
