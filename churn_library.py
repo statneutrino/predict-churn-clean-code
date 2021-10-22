@@ -6,7 +6,6 @@ This python file is an exercise in creating production ready code by practising:
 - Conforming to clean code principles (specifically PEP 8 coding style)
 - Testing (e.g. unit testing or in this case, using pytest)
 - Logging
--
 The original jupyter notebook, "churn_notebook.ipynb", was designed to predict customer
 churn. This python file takes the EDA, model fitting and model evaluation from the logistic
 regression and random forest classifiers that were created in that notebook and creates
@@ -420,6 +419,3 @@ if __name__ == "__main__":
     print(X_test.head())
     print(X_train.shape)
     print(X_test.shape)
-    
-    # rfc_model = joblib.load('./models/rfc_model.pkl')
-    # feature_importance_plot(rfc_model, X_test, './images/results/feature_importance_test.png')
