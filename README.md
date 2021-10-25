@@ -26,16 +26,12 @@ In order to run the scripts, you can use conda to import the environment using t
 ## Running Files
 The churn library can be imported by including ```import churn_library```. It can be run from the command line with:
 
-.. code-block:: bash
-
     $ ipython churn_library.py
 
 Running the script will create EDA images, as well as produce feature importance plots, a [shap explainer](https://christophm.github.io/interpretable-ml-book/shap.html) 
 plot, predictions for the train and test sets, and finally a classification report.
 
 The churn library can be tested by running:
-
-.. code-block:: bash
 
     $ ipython churn_script_logging_and_tests.py
 
