@@ -1,0 +1,20 @@
+root - INFO - Testing import_data: SUCCESS
+root - INFO - Testing dataframe passed to perform_eda: Dataframe contains expected response
+root - INFO - Testing perform_eda - files saved: SUCCESS. Files found are:['Avg_Open_To_Buy.png', 'Avg_Utilization_Ratio.png', 'bivariate_pairs_plot.png', 'Card_Category.png', 'Churn.png', 'Contacts_Count_12_mon.png', 'Credit_Limit.png', 'Customer_Age.png', 'Dependent_count.png', 'Education_Level.png', 'Gender.png', 'Income_Category.png', 'Marital_Status.png', 'Months_Inactive_12_mon.png', 'Months_on_book.png', 'Total_Amt_Chng_Q4_Q1.png', 'Total_Ct_Chng_Q4_Q1.png', 'Total_Relationship_Count.png', 'Total_Revolving_Bal.png', 'Total_Trans_Amt.png', 'Total_Trans_Ct.png']
+root - INFO - Testing perform_eda PNG files found: SUCCESS.                There are 21 files saved as png images in path
+root - INFO - Testing categorical encoding - SUCCESS: all categorical columns removed
+root - INFO - Testing categorical encoding - SUCCESS: Gender_Churn exists in dataframe
+root - INFO - Testing cat encoding - SUCCESS: 'Gender_Churn' column is now numeric
+root - INFO - Testing categorical encoding - SUCCESS: Education_Level_Churn exists in dataframe
+root - INFO - Testing cat encoding - SUCCESS: 'Education_Level_Churn' column is now numeric
+root - INFO - Testing categorical encoding - SUCCESS: Marital_Status_Churn exists in dataframe
+root - INFO - Testing cat encoding - SUCCESS: 'Marital_Status_Churn' column is now numeric
+root - INFO - Testing categorical encoding - SUCCESS: Income_Category_Churn exists in dataframe
+root - INFO - Testing cat encoding - SUCCESS: 'Income_Category_Churn' column is now numeric
+root - INFO - Testing categorical encoding - SUCCESS: Card_Category_Churn exists in dataframe
+root - INFO - Testing cat encoding - SUCCESS: 'Card_Category_Churn' column is now numeric
+root - INFO - Testing train_models; files exist in ./images/results/: SUCCESS. Files found are: ['classification_report_lr.png', 'classification_report_rf.png', 'feature_importance_lf.png', 'feature_importance_rf.png', 'ROC_curve.png', 'shap_rf.png']
+root - INFO - Testing classification reports produced: SUCCESS
+root - INFO - Testing train_models. Files saved in ./models/: SUCCESS.                Files found are: ['logistic_model.pkl', 'rfc_model.pkl', 'test_predictions.csv', 'train_predictions.csv']
+root - INFO - Testing files saved as PNG: SUCCESS.            There are 2 files saved as pkl files in path
+root - INFO - Testing feature importance plots produced: SUCCESS. 2 files found.

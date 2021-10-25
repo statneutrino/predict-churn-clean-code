@@ -159,6 +159,8 @@ def perform_feature_engineering(
               customer_df: pandas dataframe with no categorical
               response: string of response name [optional argument that could
               be used for naming variables or index y column]
+              test size: Proportion of hold-out data for test set
+              seed: seed for randomizing test set allocation
 
     output:
               X_train: X training data

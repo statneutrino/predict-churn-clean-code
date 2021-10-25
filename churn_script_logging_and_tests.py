@@ -42,62 +42,64 @@ def test_import(import_data):
     test data import - this example is completed for you to assist with the other test functions
     '''
     try:
-        df = import_data("./data/bank_data.csv")
+        customer_df = import_data("./data/bank_data.csv")
         logging.info("Testing import_data: SUCCESS")
     except FileNotFoundError as err:
         logging.error("Testing import_eda: The file wasn't found")
         raise err
 
     try:
-        assert df.shape[0] > 0
-        assert df.shape[1] > 0
+        assert customer_df.shape[0] > 0
+        assert customer_df.shape[1] > 0
     except AssertionError as err:
         logging.error(
             "Testing import_data: The file doesn't appear to have rows and columns")
         raise err
 
 
-def test_eda(perform_eda, df, path):
+def test_eda(perform_eda, customer_df, path):
     '''
     test perform eda function
     '''
     # Check if data is passed to function in correct format
-    df = cl.import_data("./data/bank_data.csv")
+    bank_data_df = cl.import_data("./data/bank_data.csv")
     path = './images/eda/'
     try:
-        assert 'Churn' in df.columns or 'Attrition_Flag' in df.columns
+        assert 'Churn' in bank_data_df.columns or 'Attrition_Flag' in bank_data_df.columns
         logging.info(
             "Testing dataframe passed to perform_eda: Dataframe contains expected response")
     except AssertionError as err:
         logging.error(
             "Testing dataframe passed to perform_eda: Dataframe does not contain \
 			expected churn response. Cannot test perform_eda without correct data")
+        raise err
 
     try:
-        perform_eda(df)
+        perform_eda(customer_df)
         total_files_in_path = len(os.listdir('./images/eda/'))
         assert total_files_in_path >= 1
         logging.info(
-            "Testing files exist in directory: SUCCESS. Files found are:" + str(os.listdir(path)))
+            "Testing perform_eda - files saved: SUCCESS. Files found are:%s",
+            str(os.listdir(path)))
 
         total_png_files = sum(ext[-3:] == 'png' for ext in os.listdir(path))
         assert total_png_files >= 1
         logging.info(
-            "Testing files saved as PNG: SUCCESS. There are %s files saved as png images in path" %
+            "Testing perform_eda PNG files found: SUCCESS.\
+                There are %d files saved as png images in path",
             total_png_files)
     except AssertionError as err:
         logging.error(
-            "Testing EDA images: no files in path" +
-            path +
-            "with png extension found.")
+            "Testing EDA images: no files in path %s with png extension found",
+            path)
         raise err
 
 
-def test_encoder_helper(encoder_helper, df):
+def test_encoder_helper(encoder_helper, customer_df):
     '''
     test encoder helper
     '''
-    category_cols = df.select_dtypes(
+    category_cols = customer_df.select_dtypes(
         exclude=['int64', 'float64']).columns.tolist()
     if len(category_cols) < 1:
         logging.warning(
@@ -105,9 +107,9 @@ def test_encoder_helper(encoder_helper, df):
 				functionality not tested.")
     else:
         try:
-            df = encoder_helper(df, category_cols)
+            customer_df = encoder_helper(customer_df, category_cols)
             assert len(
-                df.select_dtypes(
+                customer_df.select_dtypes(
                     exclude=[
                         'int64',
                         'float64']).columns.tolist()) == 0
@@ -123,13 +125,14 @@ def test_encoder_helper(encoder_helper, df):
             new_category_names = [
                 colname + '_Churn' for colname in category_cols]
             for colname in new_category_names:
-                assert colname in df.columns
+                assert colname in customer_df.columns
                 logging.info(
-                    "Testing categorical encoding - SUCCESS: %s exists in dataframe" %
+                    "Testing categorical encoding - SUCCESS: %s exists in dataframe",
                     colname)
-                assert pd.api.types.is_numeric_dtype(df[colname])
+                assert pd.api.types.is_numeric_dtype(customer_df[colname])
                 logging.info(
-                    "Testing cat encoding - SUCCESS: '{}' column is now numeric".format(colname))
+                    "Testing cat encoding - SUCCESS: '%s' column is now numeric",
+                    colname)
         except AssertionError as err:
             logging.error(
                 "Testing cat encoding: categories either not numeric or renamed to 'x_Churn'")
@@ -137,13 +140,13 @@ def test_encoder_helper(encoder_helper, df):
 
 
 def test_perform_feature_engineering(
-        perform_feature_engineering, df, test_size=0.3):
+        perform_feature_engineering, customer_df, test_size=0.3):
     '''
     test perform_feature_engineering
     '''
     try:
         X_train, X_test, y_train, y_test = perform_feature_engineering(
-            df, test_size=0.3)
+            customer_df, test_size=0.3)
         assert X_train.shape[0] > 0
         assert X_test.shape[0] > 0
         assert y_test.size > 0
@@ -158,16 +161,19 @@ def test_perform_feature_engineering(
 
     try:
         assert X_test.shape[0] - \
-            1 <= round(test_size * df.shape[0]) <= X_test.shape[0] + 1
+            1 <= round(test_size * customer_df.shape[0]) <= X_test.shape[0] + 1
         logging.info(
-            "Testing X_test dataset size is {} original dataset: SUCCESS".format(test_size))
+            "Testing X_test dataset size is %s original dataset: SUCCESS",
+            test_size)
         assert y_test.size - \
-            1 <= round(test_size * df.shape[0]) <= y_test.size + 1
+            1 <= round(test_size * customer_df.shape[0]) <= y_test.size + 1
         logging.info(
-            "Testing y_test dataset size is {} original y: SUCCESS".format(test_size))
+            "Testing y_test dataset size is %s original y: SUCCESS",
+            test_size)
     except AssertionError as err:
         logging.error("Testing perform_feature_engineering shape: \
-			test dataset size is NOT {} x train dataset".format(test_size))
+			test dataset size is NOT %s x train dataset",
+            test_size)
         raise err
 
 
@@ -182,11 +188,12 @@ def test_train_models(train_models, data_tuple, results_path, model_path):
         results_path_files = os.listdir(results_path)
         assert len(results_path_files) >= 1
         logging.info(
-            "Testing files exist in {}: SUCCESS. Files found are: {}".format(
-                results_path, results_path_files))
+            "Testing train_models; files exist in %s: SUCCESS. Files found are: %s",
+                results_path, results_path_files)
     except AssertionError as err:
         logging.error(
-            "Testing EDA images: no files in {}".format(results_path))
+            "Testing train_models: no files in %s",
+            results_path)
         raise err
 
     # Check classification report saved
@@ -198,36 +205,39 @@ def test_train_models(train_models, data_tuple, results_path, model_path):
     except AssertionError as err:
         logging.error(
             "Testing classifcation report;\
-                no classification reports found in {}".format(results_path))
+                no classification reports found in %s",
+                results_path)
         raise err
     # Check models saved
     try:
         model_path_files = os.listdir(model_path)
         assert len(model_path_files) >= 1
         logging.info(
-            "Testing files exist in {}: SUCCESS. Files found are: {}".format(
-                model_path, model_path_files))
+            "Testing train_models. Files saved in %s: SUCCESS.\
+                Files found are: %s",
+                model_path, model_path_files)
         total_pkl_files = sum(ext[-3:] == 'pkl' for ext in model_path_files)
         assert total_pkl_files >= 1
         logging.info("Testing files saved as PNG: SUCCESS.\
-            There are {} files saved as pkl files in path".format(
-            total_pkl_files))
+            There are %s files saved as pkl files in path",
+            total_pkl_files)
     except AssertionError as err:
         logging.error(
             "Testing classifcation report;\
-            no files with pkl extension found in {}".format(model_path))
+            no files with pkl extension found in %s", model_path)
         raise err
     # Check feature importance plots saved
     try:
         feature_imp_num = sum(
             'feature_importance' in file for file in results_path_files)
         assert feature_imp_num >= 1
-        logging.info("Testing feature importance plots produced: SUCCESS. {} files found.".format(
-            feature_imp_num))
+        logging.info("Testing feature importance plots produced: SUCCESS. %d files found.",
+            feature_imp_num)
     except AssertionError as err:
         logging.error(
             "Testing classifcation report;\
-                no feature importance plots found in {}".format(results_path))
+                no feature importance plots found in %s",
+                format(results_path))
         raise err
 
 
