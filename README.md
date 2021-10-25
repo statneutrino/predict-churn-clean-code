@@ -1,6 +1,6 @@
 # Predict Customer Churn
 
-- Project **Predict Customer Churn** of ML DevOps Engineer Nanodegree Udacity
+**Predict Customer Churn** of ML DevOps Engineer Nanodegree Udacity
 
 ## Project Description
 This a project to practice creating production-ready code, specific to ML contexts
@@ -24,7 +24,19 @@ In order to run the scripts, you can use conda to import the environment using t
     $ conda env create -f environment.yml 
 
 ## Running Files
-How do you run your files? What should happen when you run your files?
+The churn library can be imported by including ```import churn_library```. It can be run from the command line with:
 
+.. code-block:: bash
 
-The results of the tests are saved in ```./log/churn_library.log```
+    $ ipython churn_library.py
+
+Running the script will create EDA images, as well as produce feature importance plots, a [shap explainer](https://christophm.github.io/interpretable-ml-book/shap.html) 
+plot, predictions for the train and test sets, and finally a classification report.
+
+The churn library can be tested by running:
+
+.. code-block:: bash
+
+    $ ipython churn_script_logging_and_tests.py
+
+A log of test information is saved in ```./log/churn_library.log```
