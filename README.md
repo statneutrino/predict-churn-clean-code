@@ -19,8 +19,6 @@ the ```churn_library.py``` module.
 ## Environment
 In order to run the scripts, you can use conda to import the environment using the ```environment.yml``` file.
 
-.. code-block:: bash
-
     $ conda env create -f environment.yml 
 
 ## Running Files
